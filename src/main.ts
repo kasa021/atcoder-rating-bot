@@ -28,7 +28,8 @@ const fetchAtCoderContestInfo = async (
   }
 };
 
-const addContestInfo = (info: AtCoderContestInfo) => {
+const addContestInfo = async (username: string) => {
+  const info = await fetchAtCoderContestInfo(username);
   // すでに存在している場合は上書きする
   const index = contestInfo.findIndex(
     (item) => item.username === info.username  
@@ -63,8 +64,7 @@ const client = new Client({
 client.on("ready", async () => {
   // api使って情報を取得する
   console.log("ready");
-  const newContestInfo = await fetchAtCoderContestInfo("kAsA02");
-  addContestInfo(newContestInfo);
+  await addContestInfo("kAsA02");
   console.log(contestInfo);
 });
 
