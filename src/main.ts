@@ -54,7 +54,7 @@ const deleteContestInfo = (username: string) => {
   if (index !== -1) {
     contestInfo.splice(index, 1);
     return `${username}の情報を削除しました`;
-  }else{
+  } else {
     return `${username}は登録されていませんでした`;
   }
 };
@@ -109,5 +109,25 @@ client.on("messageCreate", (message) => {
   }
 });
 
+// showコマンド: ユーザーのAtCoderの情報を表示する
+client.on("messageCreate", (message) => {
+  if (message.content.startsWith("!show")) {
+    const username = message.content.split(" ")[1];
+    if (!username) {
+      message.channel.send("ユーザー名を入力してください");
+      return;
+    }
+    const info = getContestInfo(username);
+    if (!info) {
+      message.channel.send(`${username}は登録されていませんでした`);
+      return;
+    }
+    // userの最新のレートを取得,contestResultの最後の要素が最新のレート
+    const latestRating =
+      info.contestResult[info.contestResult.length - 1].NewRating;
+    message.channel.send(`${username}の最新のレートは${latestRating}です`);
+    console.log(latestRating);
+  }
+});
 
 client.login(process.env.DISCORD_TOKEN);
