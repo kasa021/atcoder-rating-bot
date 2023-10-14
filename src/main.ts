@@ -42,7 +42,7 @@ const addContestInfo = async (username: string): Promise<string> => {
     } else {
       contestInfo.unshift(info);
     }
-    return "";
+    return `${username}の情報を追加しました`;
   } catch (error) {
     console.error("Error adding contest info:", error);
     return "エラーが発生しました";
@@ -91,12 +91,8 @@ client.on("messageCreate", async (message) => {
       message.channel.send("ユーザー名を入力してください");
       return;
     }
-    const errorMsg = await addContestInfo(username);
-    if (errorMsg) {
-      message.channel.send(errorMsg);
-    } else {
-      message.channel.send(`${username}の情報を追加しました`);
-    }
+    const response = await addContestInfo(username);
+    message.channel.send(response);
   }
 });
 
