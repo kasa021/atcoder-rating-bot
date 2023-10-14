@@ -7,7 +7,7 @@ dotenv.config();
 const ATCODER_BASE_URL = "https://atcoder.jp/users";
 
 // AtCoderContestInfoのオブジェクト型の配列
-let contestInfo: AtCoderContestInfo[] = [];
+const contestInfo: AtCoderContestInfo[] = [];
 
 const atcoderAPI = axios.create({
   baseURL: ATCODER_BASE_URL,
@@ -28,32 +28,36 @@ const fetchAtCoderContestInfo = async (
   }
 };
 
-const addContestInfo = async (username: string) => {
-  const info = await fetchAtCoderContestInfo(username);
-  // すでに存在している場合は上書きする
-  const index = contestInfo.findIndex(
-    (item) => item.username === info.username  
-  );
-  if (index === -1) {
-    contestInfo.unshift(info);
-  } else {
-    contestInfo[index] = info;
+const addContestInfo = async (username: string): Promise<string> => {
+  try {
+    const info = await fetchAtCoderContestInfo(username);
+    if (info.contestResult.length === 0) {
+      return `${username}のコンテスト情報が存在しませんでした`;
+    }
+    const index = contestInfo.findIndex(
+      (item) => item.username === info.username
+    );
+    if (index !== -1) {
+      contestInfo[index] = info;
+    } else {
+      contestInfo.unshift(info);
+    }
+    return "";
+  } catch (error) {
+    console.error("Error adding contest info:", error);
+    return "エラーが発生しました";
   }
 };
 
 const deleteContestInfo = (username: string) => {
-  const index = contestInfo.findIndex(
-    (item) => item.username === username
-  );
+  const index = contestInfo.findIndex((item) => item.username === username);
   if (index !== -1) {
     contestInfo.splice(index, 1);
   }
 };
 
 const getContestInfo = (username: string) => {
-  const index = contestInfo.findIndex(
-    (item) => item.username === username
-  );
+  const index = contestInfo.findIndex((item) => item.username === username);
   if (index !== -1) {
     return contestInfo[index];
   } else {
@@ -73,10 +77,7 @@ const client = new Client({
 });
 
 client.on("ready", async () => {
-  // api使って情報を取得する
   console.log("ready");
-  await addContestInfo("kAsA02");
-  console.log(contestInfo);
 });
 
 client.login(process.env.DISCORD_TOKEN);
