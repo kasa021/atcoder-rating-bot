@@ -130,4 +130,12 @@ client.on("messageCreate", (message) => {
   }
 });
 
+// listコマンド: 登録しているユーザーの一覧を表示する
+client.on("messageCreate", (message) => {
+  if (message.content.startsWith("!list")) {
+    const list = contestInfo.map((item) => item.username).join("\n");
+    message.channel.send(list);
+  }
+});
+
 client.login(process.env.DISCORD_TOKEN);
