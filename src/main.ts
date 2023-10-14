@@ -40,6 +40,15 @@ const addContestInfo = (info: AtCoderContestInfo) => {
   }
 };
 
+const deleteContestInfo = (username: string) => {
+  const index = contestInfo.findIndex(
+    (item) => item.username === username
+  );
+  if (index !== -1) {
+    contestInfo.splice(index, 1);
+  }
+}
+
 const client = new Client({
   intents: [
     GatewayIntentBits.DirectMessages,
@@ -57,7 +66,6 @@ client.on("ready", async () => {
   const newContestInfo = await fetchAtCoderContestInfo("kAsA02");
   addContestInfo(newContestInfo);
   console.log(contestInfo);
-  console.log(contestInfo[0].contestResult.length);
 });
 
 client.login(process.env.DISCORD_TOKEN);
