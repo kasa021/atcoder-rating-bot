@@ -53,6 +53,9 @@ const deleteContestInfo = (username: string) => {
   const index = contestInfo.findIndex((item) => item.username === username);
   if (index !== -1) {
     contestInfo.splice(index, 1);
+    return `${username}の情報を削除しました`;
+  }else{
+    return `${username}は登録されていませんでした`;
   }
 };
 
@@ -94,6 +97,19 @@ client.on("messageCreate", async (message) => {
     } else {
       message.channel.send(`${username}の情報を追加しました`);
     }
+  }
+});
+
+// deleteコマンド: ユーザーのAtCoderの情報を削除する
+client.on("messageCreate", (message) => {
+  if (message.content.startsWith("!delete")) {
+    const username = message.content.split(" ")[1];
+    if (!username) {
+      message.channel.send("ユーザー名を入力してください");
+      return;
+    }
+    const response = deleteContestInfo(username);
+    message.channel.send(response);
   }
 });
 
