@@ -48,7 +48,18 @@ const deleteContestInfo = (username: string) => {
   if (index !== -1) {
     contestInfo.splice(index, 1);
   }
-}
+};
+
+const getContestInfo = (username: string) => {
+  const index = contestInfo.findIndex(
+    (item) => item.username === username
+  );
+  if (index !== -1) {
+    return contestInfo[index];
+  } else {
+    return null;
+  }
+};
 
 const client = new Client({
   intents: [
