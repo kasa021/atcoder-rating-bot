@@ -80,4 +80,22 @@ client.on("ready", async () => {
   console.log("ready");
 });
 
+// addコマンド: ユーザーのAtCoderの情報を追加する
+client.on("messageCreate", async (message) => {
+  if (message.content.startsWith("!add")) {
+    const username = message.content.split(" ")[1];
+    if (!username) {
+      message.channel.send("ユーザー名を入力してください");
+      return;
+    }
+    const errorMsg = await addContestInfo(username);
+    if (errorMsg) {
+      message.channel.send(errorMsg);
+    } else {
+      message.channel.send(`${username}の情報を追加しました`);
+    }
+  }
+});
+
+
 client.login(process.env.DISCORD_TOKEN);
