@@ -29,7 +29,15 @@ const fetchAtCoderContestInfo = async (
 };
 
 const addContestInfo = (info: AtCoderContestInfo) => {
-  contestInfo = [info, ...contestInfo];
+  // すでに存在している場合は上書きする
+  const index = contestInfo.findIndex(
+    (item) => item.username === info.username  
+  );
+  if (index === -1) {
+    contestInfo.unshift(info);
+  } else {
+    contestInfo[index] = info;
+  }
 };
 
 const client = new Client({
