@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import { GatewayIntentBits, Client, Partials } from "discord.js";
+import { GatewayIntentBits, Client, Partials, Message } from "discord.js";
 import { AtCoderContestInfo } from "./interface";
 import * as AtCoderAPI from "./atcoderAPI";
 
@@ -17,8 +17,6 @@ const client = new Client({
   ],
   partials: [Partials.Message, Partials.Channel],
 });
-
-import { Message } from "discord.js";
 
 async function handleAddCommand(message: Message, username: string) {
   if (!username) {
@@ -62,7 +60,7 @@ function handleListCommand(message: Message) {
   message.channel.send(list);
 }
 
-client.on("messageCreate", async (message) => {
+client.on("messageCreate", async (message: Message) => {
   const content = message.content;
   const command = content.split(" ")[0];
   const username = content.split(" ")[1];
