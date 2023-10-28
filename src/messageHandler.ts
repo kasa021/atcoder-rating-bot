@@ -52,8 +52,11 @@ async function handleGraphCommand(message: Message, username: string) {
 
 export const handleMessage = async (message: Message) => {
   const content = message.content;
-  const command = content.split(" ")[0];
-  const username = content.split(" ")[1];
+  const [command, ...usernameParts] = content.split(" ");
+  const usernames = usernameParts
+    .join(" ")
+    .split(",")
+    .map((u) => u.trim()); // カンマ区切りで複数ユーザーネームを受け取る
 
   // コマンド一覧
   const validCommands = ["!add", "!delete", "!show", "!list", "!graph"];
@@ -61,27 +64,37 @@ export const handleMessage = async (message: Message) => {
     return;
   }
 
-  if (!["!list"].includes(command) && !validateUsername(message, username)) {
+  if (
+    !["!list"].includes(command) &&
+    usernames.some((u) => !validateUsername(message, u))
+  ) {
     return;
   }
 
   switch (command) {
     case "!add":
-      await handleAddCommand(message, username);
+      for (const username of usernames) {
+        await handleAddCommand(message, username);
+      }
       break;
     case "!delete":
-      handleDeleteCommand(message, username);
+      for (const username of usernames) {
+        handleDeleteCommand(message, username);
+      }
       break;
     case "!show":
-      handleShowCommand(message, username);
+      for (const username of usernames) {
+        handleShowCommand(message, username);
+      }
       break;
     case "!list":
       handleListCommand(message);
       break;
-    case "!graph": {
-      await handleGraphCommand(message, username);
+    case "!graph":
+      for (const username of usernames) {
+        await handleGraphCommand(message, username);
+      }
       break;
-    }
     default:
       break;
   }
