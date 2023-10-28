@@ -119,7 +119,6 @@ client.on("messageCreate", async (message: Message) => {
         rating: item.NewRating,
         date: new Date(item.EndTime),
       }));
-    console.log(data);
 
     // 折れ線グラフを描画
     ctx.beginPath();
@@ -177,11 +176,6 @@ client.on("messageCreate", async (message: Message) => {
     const lastMonth = data[data.length - 1].date.getMonth() + 1;
     const lastYear = data[data.length - 1].date.getFullYear();
     const range = (lastYear - firstYear) * 12 + (lastMonth - firstMonth);
-    console.log("range", range);
-    console.log("firstMonth", firstMonth);
-    console.log("firstYear", firstYear);
-    console.log("lastMonth", lastMonth);
-    console.log("lastYear", lastYear);
     if (range < 8) {
       for (let i = 0; i < range; i++) {
         const year = firstYear + Math.floor((firstMonth + i) / 12);
@@ -195,10 +189,8 @@ client.on("messageCreate", async (message: Message) => {
           firstYear + Math.floor((firstMonth + i * (range / 8)) / 12);
         const month = (firstMonth + i) % 12;
         xLabelValues.push(`${year}/${month}`);
-        console.log(`${year}/${month}`);
       }
       xLabelStep = (xMax - xMin) / 8;
-      console.log(xLabelStep);
     }
     const nowDate = new Date();
     const nowYear = nowDate.getFullYear();
@@ -206,7 +198,6 @@ client.on("messageCreate", async (message: Message) => {
     xLabelValues.push(`${nowYear}/${nowMonth}`);
 
     xLabelValues.forEach((value, index) => {
-      console.log(value);
       ctx.beginPath();
       const x = index * xLabelStep * xScale + 50;
       ctx.moveTo(x, canvas.height - 50);
@@ -245,7 +236,10 @@ client.on("messageCreate", async (message: Message) => {
 
     for (let i = 0; i < data.length; i++) {
       const x = (convertDateToDays(data[i].date) - xMin) * xScale + 50;
-      const y = (yMax - data[i].rating) * yScale + 50;
+      const y =
+        ((canvas.height - 100) / yLabelValues[yLabelCount]) *
+          (yLabelValues[yLabelCount] - data[i].rating) +
+        50;
 
       if (i === 0) {
         ctx.moveTo(x, y);
