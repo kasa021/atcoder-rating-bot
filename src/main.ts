@@ -192,14 +192,16 @@ client.on("messageCreate", async (message: Message) => {
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
 
-    const yLabelCount = 5;
+    const yLabelValues = [0, 400, 800, 1200, 1600, 2000, 2400, 2800, 3200, 3600];
+    // 0からyMaxより一つ上のレーティングを追加
+    const yLabelCount = yLabelValues.findIndex((item) => item > yMax);
     const yLabelStep = Math.ceil((yMax - yMin) / yLabelCount);
 
     for (let i = 0; i <= yLabelCount; i++) {
       const y = canvas.height - 50 - i * yLabelStep * yScale;
       ctx.moveTo(50, y);
       ctx.lineTo(55, y);
-      ctx.fillText(`${yMin + i * yLabelStep}`, 45, y);
+      ctx.fillText(yLabelValues[i].toString(), 45, y);
     }
     ctx.stroke();
 
