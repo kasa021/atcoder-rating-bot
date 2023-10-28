@@ -20,7 +20,12 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.44",
     "axios": "^1.5.1",
+    "canvas": "^2.11.2",
+    "chart.js": "^4.4.0",
+    "chat.js": "^1.0.2",
+    "dayjs": "^1.11.10",
     "discord.js": "^14.13.0",
     "dotenv": "^16.3.1"
   }
