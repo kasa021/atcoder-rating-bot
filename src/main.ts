@@ -119,6 +119,7 @@ client.on("messageCreate", async (message: Message) => {
         rating: item.NewRating,
         date: new Date(item.EndTime),
       }));
+    console.log(data);
 
     // 折れ線グラフを描画
     ctx.beginPath();
@@ -168,21 +169,51 @@ client.on("messageCreate", async (message: Message) => {
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
 
-    const xLabelCount = 5;
-    const xLabelStep = Math.ceil((xMax - xMin) / xLabelCount);
+    const xLabelValues = [];
+    let xLabelStep: number;
 
-    for (let i = 0; i <= xLabelCount; i++) {
-      const x = i * xLabelStep * xScale + 50;
-      const date = new Date(xMin + i * xLabelStep);
+    const firstMonth = data[0].date.getMonth() + 1;
+    const firstYear = data[0].date.getFullYear();
+    const lastMonth = data[data.length - 1].date.getMonth() + 1;
+    const lastYear = data[data.length - 1].date.getFullYear();
+    const range = (lastYear - firstYear) * 12 + (lastMonth - firstMonth);
+    console.log("range", range);
+    console.log("firstMonth", firstMonth);
+    console.log("firstYear", firstYear);
+    console.log("lastMonth", lastMonth);
+    console.log("lastYear", lastYear);
+    if (range < 8) {
+      for (let i = 0; i < range; i++) {
+        const year = firstYear + Math.floor((firstMonth + i) / 12);
+        const month = (firstMonth + i) % 12;
+        xLabelValues.push(`${year}/${month}`);
+      }
+      xLabelStep = (xMax - xMin) / range;
+    } else {
+      for (let i = 0; i < 8; i++) {
+        const year =
+          firstYear + Math.floor((firstMonth + i * (range / 8)) / 12);
+        const month = (firstMonth + i) % 12;
+        xLabelValues.push(`${year}/${month}`);
+        console.log(`${year}/${month}`);
+      }
+      xLabelStep = (xMax - xMin) / 8;
+      console.log(xLabelStep);
+    }
+    const nowDate = new Date();
+    const nowYear = nowDate.getFullYear();
+    const nowMonth = nowDate.getMonth() + 1;
+    xLabelValues.push(`${nowYear}/${nowMonth}`);
+
+    xLabelValues.forEach((value, index) => {
+      console.log(value);
+      ctx.beginPath();
+      const x = index * xLabelStep * xScale + 50;
       ctx.moveTo(x, canvas.height - 50);
       ctx.lineTo(x, canvas.height - 45);
-      ctx.fillText(
-        `${date.getMonth() + 1}/${date.getDate()}`,
-        x,
-        canvas.height - 40
-      );
-    }
-    ctx.stroke();
+      ctx.stroke(); // この行を追加
+      ctx.fillText(value, x, canvas.height - 40);
+    });
 
     // y軸の目盛りの描画
     ctx.beginPath();
@@ -192,7 +223,9 @@ client.on("messageCreate", async (message: Message) => {
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
 
-    const yLabelValues = [0, 400, 800, 1200, 1600, 2000, 2400, 2800, 3200, 3600];
+    const yLabelValues = [
+      0, 400, 800, 1200, 1600, 2000, 2400, 2800, 3200, 3600,
+    ];
     // 0からyMaxより一つ上のレーティングを追加
     const yLabelCount = yLabelValues.findIndex((item) => item > yMax);
     const yLabelStep = Math.ceil((yMax - yMin) / yLabelCount);
