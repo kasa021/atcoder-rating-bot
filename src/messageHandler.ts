@@ -1,18 +1,11 @@
 // messageHandler.ts
-import { Message } from "discord.js";
+import { Message, StringSelectMenuInteraction } from "discord.js";
 import * as AtCoderAPI from "./atcoderAPI";
 import { drawGraph } from "./drawGraph";
 import { AtCoderContestInfo } from "./interface";
+import { selectUsername } from "./selectMenu";
 
 const contestInfo: AtCoderContestInfo[] = [];
-
-function validateUsername(message: Message, username: string): boolean {
-  if (!username) {
-    message.channel.send("ユーザー名を入力してください");
-    return false;
-  }
-  return true;
-}
 
 async function handleAddCommand(message: Message, username: string) {
   const response = await AtCoderAPI.addContestInfo(username, contestInfo);
@@ -36,6 +29,10 @@ function handleShowCommand(message: Message, username: string) {
 }
 
 function handleListCommand(message: Message) {
+  if (contestInfo.length === 0) {
+    message.channel.send("ユーザーが登録されていません");
+    return;
+  }
   const list = contestInfo.map((item) => item.username).join("\n");
   message.channel.send(list);
 }
@@ -50,38 +47,102 @@ async function handleGraphCommand(message: Message, username: string) {
   message.channel.send({ files: [attachment] });
 }
 
-export const handleMessage = async (message: Message) => {
-  const content = message.content;
-  const command = content.split(" ")[0];
-  const username = content.split(" ")[1];
+async function handleSelectCommand(message: Message) {
+  if (contestInfo.length === 0) {
+    message.channel.send("ユーザーが登録されていません");
+    return [];
+  }
+  const sentMenu = await selectUsername(message, contestInfo);
 
+  const filter = (interaction: StringSelectMenuInteraction) => {
+    return interaction.customId === "select";
+  };
+  const collected = await sentMenu.awaitMessageComponent({
+    filter,
+    time: 10000,
+  });
+  if (!collected) {
+    message.channel.send("タイムアウトしました。もう一度やり直してください。");
+    return;
+  }
+  const usernames = collected.values;
+  return usernames;
+}
+
+export const handleMessage = async (message: Message) => {
   // コマンド一覧
-  const validCommands = ["!add", "!delete", "!show", "!list", "!graph"];
+  const validCommands = [
+    "!add",
+    "!delete",
+    "!show",
+    "!list",
+    "!graph",
+    "!select",
+  ];
+  const content = message.content;
+  const [command, ...usernameParts] = content.split(" ");
   if (!validCommands.includes(command)) {
     return;
   }
 
-  if (!["!list"].includes(command) && !validateUsername(message, username)) {
-    return;
+  let usernames: string[] = [];
+  console.log(usernameParts);
+
+  switch (command) {
+    case "!delete":
+    case "!show":
+    case "!graph":
+      console.log;
+      if (usernameParts.length === 0) {
+        usernames = await handleSelectCommand(message);
+      } else {
+        usernames = usernameParts
+          .join(" ")
+          .split(" ")
+          .map((u) => u.trim());
+      }
+      if (usernames.length === 0) return;
+      break;
+    case "!add":
+      if (usernameParts.length === 0) {
+        message.channel.send("ユーザー名を入力してください");
+        return;
+      }
+      usernames = usernameParts
+        .join(" ")
+        .split(" ")
+        .map((u) => u.trim());
+      if (usernames.length === 0) return;
+      break;
   }
+
+  console.log(command);
+  console.log(usernames);
 
   switch (command) {
     case "!add":
-      await handleAddCommand(message, username);
+      for (const username of usernames) {
+        await handleAddCommand(message, username);
+      }
       break;
     case "!delete":
-      handleDeleteCommand(message, username);
+      for (const username of usernames) {
+        handleDeleteCommand(message, username);
+      }
       break;
     case "!show":
-      handleShowCommand(message, username);
+      for (const username of usernames) {
+        handleShowCommand(message, username);
+      }
       break;
     case "!list":
       handleListCommand(message);
       break;
-    case "!graph": {
-      await handleGraphCommand(message, username);
+    case "!graph":
+      for (const username of usernames) {
+        await handleGraphCommand(message, username);
+      }
       break;
-    }
     default:
       break;
   }
