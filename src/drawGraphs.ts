@@ -3,37 +3,36 @@ import { AtCoderContestInfo } from "./interface";
 import { AttachmentBuilder } from "discord.js";
 import * as AtCoderAPI from "./atcoderAPI";
 
-export const drawGraph = async (
-  username: string,
+export const drawGraphs = async (
+  usernames: string[],
   contestInfo: AtCoderContestInfo[]
 ) => {
-  // Canvasを作成
-  const canvas = createCanvas(800, 400);
+  const canvas = createCanvas(1000, 500);
   const ctx = canvas.getContext("2d");
 
-  // 背景を白に設定
   ctx.fillStyle = "white";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  const userContestInfo = await AtCoderAPI.getContestInfo(
-    username,
-    contestInfo
+  const userContestInfos = await Promise.all(
+    usernames.map(async (username) => {
+      const info = await AtCoderAPI.getContestInfo(username, contestInfo);
+      return info;
+    })
   );
-  // レーティングと日付のデータ rated: falseのものは削除する
+
   const data =
-    userContestInfo?.contestResult
-      ?.filter((item) => item.IsRated)
-      ?.map((item) => ({
-        rating: item.NewRating,
-        date: new Date(item.EndTime),
-      })) ?? [];
+    userContestInfos
+      ?.filter((info): info is AtCoderContestInfo => info !== undefined)
+      .map((info) =>
+        info?.contestResult
+          ?.filter((item) => item.IsRated)
+          ?.map((item) => ({
+            rating: item.NewRating,
+            date: new Date(item.EndTime),
+          }))
+      )
+      .flat() ?? [];
 
-  // 折れ線グラフを描画
-  ctx.beginPath();
-  ctx.strokeStyle = "blue";
-  ctx.lineWidth = 2;
-
-  // 日付を計算で扱えるように日数に変換する関数
   const convertDateToDays = (date: Date): number => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -41,7 +40,6 @@ export const drawGraph = async (
     return year * 365 + month * 30 + day;
   };
 
-  // x軸: 日付, y軸: レーティング
   const x = data.map((item) => convertDateToDays(item.date));
   const y = data.map((item) => item.rating);
   const xMin = Math.min(...x);
@@ -52,23 +50,18 @@ export const drawGraph = async (
   const xScale = (canvas.width - 100) / (xMax - xMin);
   const yScale = (canvas.height - 100) / (yMax - yMin);
 
-  // x軸の描画
   ctx.beginPath();
   ctx.strokeStyle = "black";
-
   ctx.moveTo(50, canvas.height - 50);
   ctx.lineTo(canvas.width - 50, canvas.height - 50);
   ctx.stroke();
 
-  // y軸の描画
   ctx.beginPath();
   ctx.strokeStyle = "black";
-
   ctx.moveTo(50, canvas.height - 50);
   ctx.lineTo(50, 50);
   ctx.stroke();
 
-  // x軸の目盛りの描画
   ctx.beginPath();
   ctx.strokeStyle = "black";
   ctx.fillStyle = "black";
@@ -99,6 +92,7 @@ export const drawGraph = async (
     }
     xLabelStep = (xMax - xMin) / 8;
   }
+
   const nowDate = new Date();
   const nowYear = nowDate.getFullYear();
   const nowMonth = nowDate.getMonth() + 1;
@@ -109,11 +103,10 @@ export const drawGraph = async (
     const x = index * xLabelStep * xScale + 50;
     ctx.moveTo(x, canvas.height - 50);
     ctx.lineTo(x, canvas.height - 45);
-    ctx.stroke(); // この行を追加
+    ctx.stroke();
     ctx.fillText(value, x, canvas.height - 40);
   });
 
-  // y軸の目盛りの描画
   ctx.beginPath();
   ctx.strokeStyle = "black";
   ctx.fillStyle = "black";
@@ -122,7 +115,6 @@ export const drawGraph = async (
   ctx.textBaseline = "middle";
 
   const yLabelValues = [0, 400, 800, 1200, 1600, 2000, 2400, 2800, 3200, 3600];
-  // 0からyMaxより一つ上のレーティングを追加
   const yLabelCount = yLabelValues.findIndex((item) => item > yMax);
   const yLabelStep = Math.ceil((yMax - yMin) / yLabelCount);
 
@@ -134,49 +126,62 @@ export const drawGraph = async (
   }
   ctx.stroke();
 
-  // 折れ線グラフの描画
-  ctx.beginPath();
-  ctx.strokeStyle = "blue";
-  ctx.lineWidth = 2;
-
-  for (let i = 0; i < data.length; i++) {
-    const x = (convertDateToDays(data[i].date) - xMin) * xScale + 50;
-    const y =
-      ((canvas.height - 100) / yLabelValues[yLabelCount]) *
-        (yLabelValues[yLabelCount] - data[i].rating) +
-      50;
-
-    if (i === 0) {
-      ctx.moveTo(x, y);
-    } else {
-      ctx.lineTo(x, y);
+  usernames.forEach((username, index) => {
+    const userContestInfo = userContestInfos[index];
+    if (!userContestInfo) {
+      return;
     }
-    ctx.stroke();
+    const userContestResult = userContestInfo.contestResult;
+    if (!userContestResult) {
+      return;
+    }
+    const userRating = userContestResult
+      .filter((item) => item.IsRated)
+      .map((item) => ({
+        rating: item.NewRating,
+        date: new Date(item.EndTime),
+      }));
 
-    // ポイントをプロット
-    ctx.beginPath();
-    ctx.fillStyle = "blue";
-    ctx.arc(x, y, 3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.closePath();
+    const color = "hsl(" + (index * 360) / usernames.length + ", 70%, 50%)";
 
-    // 折れ線グラフのパスに戻る
     ctx.beginPath();
-    ctx.strokeStyle = "blue";
+    ctx.strokeStyle = color;
     ctx.lineWidth = 2;
-    ctx.moveTo(x, y);
-  }
 
-  // usernameを右上に表示
-  ctx.beginPath();
-  ctx.fillStyle = "black";
-  ctx.font = "20px serif";
-  ctx.textAlign = "right";
-  ctx.textBaseline = "top";
-  ctx.fillText(username, canvas.width - 10, 10);
+    for (let i = 0; i < userRating.length; i++) {
+      const x = (convertDateToDays(userRating[i].date) - xMin) * xScale + 50;
+      const y =
+        ((canvas.height - 100) / yLabelValues[yLabelCount]) *
+          (yLabelValues[yLabelCount] - userRating[i].rating) +
+        50;
 
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+      ctx.stroke();
 
-  // 画像を添付して送信
+      ctx.beginPath();
+      ctx.fillStyle = color;
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.closePath();
+
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.moveTo(x, y);
+    }
+
+    ctx.beginPath();
+    ctx.fillStyle = color;
+    ctx.font = "20px serif";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "top";
+    ctx.fillText(username, canvas.width - 10 - 100 * index, 10);
+  });
+
   const attachment = new AttachmentBuilder(canvas.toBuffer(), {
     name: "graph.png",
   });

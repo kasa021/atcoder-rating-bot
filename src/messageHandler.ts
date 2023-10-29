@@ -2,6 +2,7 @@
 import { Message, StringSelectMenuInteraction } from "discord.js";
 import * as AtCoderAPI from "./atcoderAPI";
 import { drawGraph } from "./drawGraph";
+import { drawGraphs } from "./drawGraphs";
 import { AtCoderContestInfo } from "./interface";
 import { selectUsername } from "./selectMenu";
 
@@ -47,6 +48,12 @@ async function handleGraphCommand(message: Message, username: string) {
   message.channel.send({ files: [attachment] });
 }
 
+async function handleGraphsCommand(message: Message, usernames: string[]) {
+  const attachments = await drawGraphs(usernames, contestInfo);
+  
+  message.channel.send({ files: [attachments] });
+}
+
 async function handleSelectCommand(message: Message) {
   if (contestInfo.length === 0) {
     message.channel.send("ユーザーが登録されていません");
@@ -78,6 +85,7 @@ export const handleMessage = async (message: Message) => {
     "!list",
     "!graph",
     "!select",
+    "!graphs"
   ];
   const content = message.content;
   const [command, ...usernameParts] = content.split(" ");
@@ -86,13 +94,12 @@ export const handleMessage = async (message: Message) => {
   }
 
   let usernames: string[] = [];
-  console.log(usernameParts);
 
   switch (command) {
     case "!delete":
     case "!show":
     case "!graph":
-      console.log;
+    case "!graphs":
       if (usernameParts.length === 0) {
         usernames = await handleSelectCommand(message);
       } else {
@@ -115,9 +122,6 @@ export const handleMessage = async (message: Message) => {
       if (usernames.length === 0) return;
       break;
   }
-
-  console.log(command);
-  console.log(usernames);
 
   switch (command) {
     case "!add":
@@ -142,6 +146,9 @@ export const handleMessage = async (message: Message) => {
       for (const username of usernames) {
         await handleGraphCommand(message, username);
       }
+      break;
+    case "!graphs":
+      await handleGraphsCommand(message, usernames);
       break;
     default:
       break;
