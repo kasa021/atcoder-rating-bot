@@ -142,7 +142,7 @@ export const drawGraphs = async (
         date: new Date(item.EndTime),
       }));
 
-    const color = "hsl(" + (index * 360) / usernames.length + ", 100%, 50%)";
+    const color = "hsl(" + (index * 360) / usernames.length + ", 70%, 50%)";
 
     ctx.beginPath();
     ctx.strokeStyle = color;
