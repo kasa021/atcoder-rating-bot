@@ -29,6 +29,11 @@ function handleShowCommand(message: Message, username: string) {
 }
 
 function handleListCommand(message: Message) {
+  console.log("AAAAAAAAA");
+  if(contestInfo.length === 0) {
+    message.channel.send("ユーザーが登録されていません");
+    return;
+  }
   const list = contestInfo.map((item) => item.username).join("\n");
   message.channel.send(list);
 }
@@ -113,6 +118,7 @@ export const handleMessage = async (message: Message) => {
       }
       break;
     case "!show":
+      console.log(usernames);
       for (const username of usernames) {
         handleShowCommand(message, username);
       }
