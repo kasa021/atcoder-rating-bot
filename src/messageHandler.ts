@@ -79,13 +79,12 @@ async function handleSelectCommand(message: Message) {
 export const handleMessage = async (message: Message) => {
   // コマンド一覧
   const validCommands = [
-    "!add",
-    "!delete",
-    "!show",
-    "!list",
-    "!graph",
-    "!select",
-    "!graphs"
+    "!rate/add",
+    "!rate/delete",
+    "!rate/show",
+    "!rate/list",
+    "!rate/graph",
+    "!rate/graphs"
   ];
   const content = message.content;
   const [command, ...usernameParts] = content.split(" ");
@@ -96,10 +95,10 @@ export const handleMessage = async (message: Message) => {
   let usernames: string[] = [];
 
   switch (command) {
-    case "!delete":
-    case "!show":
-    case "!graph":
-    case "!graphs":
+    case "!rate/delete":
+    case "!rate/show":
+    case "!rate/graph":
+    case "!rate/graphs":
       if (usernameParts.length === 0) {
         usernames = await handleSelectCommand(message);
       } else {
@@ -110,7 +109,7 @@ export const handleMessage = async (message: Message) => {
       }
       if (usernames.length === 0) return;
       break;
-    case "!add":
+    case "!rate/add":
       if (usernameParts.length === 0) {
         message.channel.send("ユーザー名を入力してください");
         return;
@@ -124,30 +123,30 @@ export const handleMessage = async (message: Message) => {
   }
 
   switch (command) {
-    case "!add":
+    case "!rate/add":
       for (const username of usernames) {
         await handleAddCommand(message, username);
       }
       break;
-    case "!delete":
+    case "!rate/delete":
       for (const username of usernames) {
         handleDeleteCommand(message, username);
       }
       break;
-    case "!show":
+    case "!rate/show":
       for (const username of usernames) {
         handleShowCommand(message, username);
       }
       break;
-    case "!list":
+    case "!rate/list":
       handleListCommand(message);
       break;
-    case "!graph":
+    case "!rate/graph":
       for (const username of usernames) {
         await handleGraphCommand(message, username);
       }
       break;
-    case "!graphs":
+    case "!rate/graphs":
       await handleGraphsCommand(message, usernames);
       break;
     default:
