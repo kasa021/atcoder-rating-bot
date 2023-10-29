@@ -29,8 +29,7 @@ function handleShowCommand(message: Message, username: string) {
 }
 
 function handleListCommand(message: Message) {
-  console.log("AAAAAAAAA");
-  if(contestInfo.length === 0) {
+  if (contestInfo.length === 0) {
     message.channel.send("ユーザーが登録されていません");
     return;
   }
@@ -49,6 +48,10 @@ async function handleGraphCommand(message: Message, username: string) {
 }
 
 async function handleSelectCommand(message: Message) {
+  if (contestInfo.length === 0) {
+    message.channel.send("ユーザーが登録されていません");
+    return [];
+  }
   const sentMenu = await selectUsername(message, contestInfo);
 
   const filter = (interaction: StringSelectMenuInteraction) => {
@@ -89,7 +92,16 @@ export const handleMessage = async (message: Message) => {
     case "!delete":
     case "!show":
     case "!graph":
-      usernames = await handleSelectCommand(message);
+      console.log;
+      if (usernameParts.length === 0) {
+        usernames = await handleSelectCommand(message);
+      } else {
+        usernames = usernameParts
+          .join(" ")
+          .split(" ")
+          .map((u) => u.trim());
+      }
+      if (usernames.length === 0) return;
       break;
     case "!add":
       if (usernameParts.length === 0) {
@@ -100,6 +112,7 @@ export const handleMessage = async (message: Message) => {
         .join(" ")
         .split(" ")
         .map((u) => u.trim());
+      if (usernames.length === 0) return;
       break;
   }
 
@@ -118,7 +131,6 @@ export const handleMessage = async (message: Message) => {
       }
       break;
     case "!show":
-      console.log(usernames);
       for (const username of usernames) {
         handleShowCommand(message, username);
       }
