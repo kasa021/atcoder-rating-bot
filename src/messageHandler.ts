@@ -84,7 +84,8 @@ export const handleMessage = async (message: Message) => {
     "!rate/show",
     "!rate/list",
     "!rate/graph",
-    "!rate/graphs"
+    "!rate/graphs",
+    "!rate/help"
   ];
   const content = message.content;
   const [command, ...usernameParts] = content.split(" ");
@@ -148,6 +149,20 @@ export const handleMessage = async (message: Message) => {
       break;
     case "!rate/graphs":
       await handleGraphsCommand(message, usernames);
+      break;
+    case "!rate/help":
+      message.channel.send(
+        "コマンド一覧\n" +
+          "!rate/add [username] : ユーザーを追加します\n" +
+          "!rate/delete [username] : ユーザーを削除します\n" +
+          "!rate/show [username] : ユーザーの最新のレートを表示します\n" +
+          "!rate/list : ユーザーの一覧を表示します\n" +
+          "!rate/graph [username] : ユーザーのグラフを表示します\n" +
+          "!rate/graphs [username1] [username2] ... : ユーザーのグラフを表示します\n" +
+          "!rate/help : ヘルプを表示します\n" +
+          "ユーザー名は半角スペース区切りで複数指定できます\n" +
+          "delete,show,graph,graphsでユーザー名を指定しない場合は、登録されているユーザーから選択できます"
+      );
       break;
     default:
       break;
