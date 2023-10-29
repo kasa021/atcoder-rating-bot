@@ -1,5 +1,5 @@
 // messageHandler.ts
-import { Message } from "discord.js";
+import { Message, StringSelectMenuInteraction } from "discord.js";
 import * as AtCoderAPI from "./atcoderAPI";
 import { drawGraph } from "./drawGraph";
 import { AtCoderContestInfo } from "./interface";
@@ -43,6 +43,24 @@ async function handleGraphCommand(message: Message, username: string) {
   message.channel.send({ files: [attachment] });
 }
 
+async function handleSelectCommand(message: Message) {
+  const sentMenu = await selectUsername(message, contestInfo);
+
+  const filter = (interaction: StringSelectMenuInteraction) => {
+    return interaction.customId === "select";
+  };
+  const collected = await sentMenu.awaitMessageComponent({
+    filter,
+    time: 10000,
+  });
+  if (!collected) {
+    message.channel.send("タイムアウトしました。もう一度やり直してください。");
+    return;
+  }
+  const usernames = collected.values;
+  return usernames;
+}
+
 export const handleMessage = async (message: Message) => {
   // コマンド一覧
   const validCommands = [
@@ -58,10 +76,7 @@ export const handleMessage = async (message: Message) => {
   if (!validCommands.includes(command)) {
     return;
   }
-  // const usernames = usernameParts
-  //   .join(" ")
-  //   .split(" ")
-  //   .map((u) => u.trim()); // カンマ区切りで複数ユーザーネームを受け取る
+
   let usernames: string[] = [];
   console.log(usernameParts);
 
@@ -69,23 +84,22 @@ export const handleMessage = async (message: Message) => {
     case "!delete":
     case "!show":
     case "!graph":
-      usernames = [usernameParts.join(" ").trim()];
-      selectUsername(message, contestInfo);
+      usernames = await handleSelectCommand(message);
       break;
     case "!add":
-      // usernames = usernameParts
-      //   .join(" ")
-      //   .split(" ")
-      //   .map((u) => u.trim());
       if (usernameParts.length === 0) {
         message.channel.send("ユーザー名を入力してください");
         return;
       }
-
+      usernames = usernameParts
+        .join(" ")
+        .split(" ")
+        .map((u) => u.trim());
       break;
   }
 
   console.log(command);
+  console.log(usernames);
 
   switch (command) {
     case "!add":
@@ -111,11 +125,6 @@ export const handleMessage = async (message: Message) => {
         await handleGraphCommand(message, username);
       }
       break;
-    // case "!select":
-    //   console.log(contestInfo);
-    //   selectMenu(message, contestInfo);
-    //   console.log("select");
-    //   break;
     default:
       break;
   }
