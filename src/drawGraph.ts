@@ -167,6 +167,15 @@ export const drawGraph = async (
     ctx.moveTo(x, y);
   }
 
+  // usernameを右上に表示
+  ctx.beginPath();
+  ctx.fillStyle = "black";
+  ctx.font = "20px serif";
+  ctx.textAlign = "right";
+  ctx.textBaseline = "top";
+  ctx.fillText(username, canvas.width - 10, 10);
+
+
   // 画像を添付して送信
   const attachment = new AttachmentBuilder(canvas.toBuffer(), {
     name: "graph.png",
